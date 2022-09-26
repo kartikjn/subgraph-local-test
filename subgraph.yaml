@@ -1,27 +1,69 @@
-specVersion: 0.0.2
-description: Gravatar for Ethereum
-repository: https://github.com/graphprotocol/example-subgraph
+specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
-  - kind: ethereum/contract
-    name: Gravity
-    network: mainnet
+  - kind: ethereum
+    name: CollaterisedRent
+    network: goerli
     source:
-      address: '0x2E645469f354BB4F5c8a05B3b30A929361cf77eC'
-      abi: Gravity
+      address: "0x46778f09A485CCDCf995019BC8c634583Ea97258"
+      abi: CollaterisedRent
+      startBlock: 7626050
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - Gravatar
+        - CollateralClaimed
+        - LendingStopped
+        - Lent
+        - Rented
+        - Returned
       abis:
-        - name: Gravity
-          file: ./abis/Gravity.json
+        - name: CollaterisedRent
+          file: ./build/contracts/CollaterisedRent.json
       eventHandlers:
-        - event: NewGravatar(uint256,address,string,string)
-          handler: handleNewGravatar
-        - event: UpdatedGravatar(uint256,address,string,string)
-          handler: handleUpdatedGravatar
-      file: ./src/mapping.ts
+        - event: CollateralClaimed(indexed uint256,uint32)
+          handler: handleCollateralClaimed
+        - event: LendingStopped(indexed uint256,uint32)
+          handler: handleLendingStopped
+        - event: Lent(indexed address,indexed uint256,uint8,uint256,indexed
+            address,uint8,bytes4,bytes4,bool,uint8)
+          handler: handleLent
+        - event: Rented(uint256,indexed address,uint8,uint32)
+          handler: handleRented
+        - event: Returned(indexed uint256,uint32)
+          handler: handleReturned
+      file: ./src/collaterised-rent.ts
+  - kind: ethereum
+    name: Registry
+    network: goerli
+    source:
+      address: "0xE9eCa756A0e7EAEa0b3eBa99e18cB136C71D3F83"
+      abi: Registry
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Lend
+        - Rent
+        - RentClaimed
+        - StopLend
+        - StopRent
+      abis:
+        - name: Registry
+          file: ./build/contracts/Registry.json
+      eventHandlers:
+        - event: Lend(bool,indexed address,indexed address,indexed
+            uint256,uint256,uint8,bytes4,uint16,uint8)
+          handler: handleLend
+        - event: Rent(indexed address,indexed uint256,indexed uint256,uint16,uint8,uint32)
+          handler: handleRent
+        - event: RentClaimed(indexed uint256,uint32)
+          handler: handleRentClaimed
+        - event: StopLend(indexed uint256,uint32)
+          handler: handleStopLend
+        - event: StopRent(indexed uint256,uint32)
+          handler: handleStopRent
+      file: ./src/registry.ts
